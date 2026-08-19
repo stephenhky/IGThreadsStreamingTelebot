@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Secrets
+*.json
+!package.json
+service-account*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Lambda packaging
+.aws-sam/
+packaged.yaml

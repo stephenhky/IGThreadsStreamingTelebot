@@ -42,7 +42,9 @@ def append_links(links: list[str]) -> None:
     """Append one row per link to the configured Google Sheet.
 
     Each row contains:
-        | timestamp (UTC ISO-8601) | url | platform | downloaded |
+        | timestamp (UTC ISO-8601) | url | platform | status | comments |
+
+    Status is set to ``PENDING`` for newly added links.
 
     Parameters
     ----------
@@ -61,7 +63,7 @@ def append_links(links: list[str]) -> None:
     rows = []
     for url in links:
         platform = _detect_platform(url)
-        rows.append([now, url, platform, "FALSE"])
+        rows.append([now, url, platform, "PENDING", ""])
 
     worksheet.append_rows(rows, value_input_option="USER_ENTERED")
 

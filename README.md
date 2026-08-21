@@ -10,9 +10,9 @@ Telegram message → API Gateway → Lambda (this project) → Google Sheet
 
 Each incoming link is stored as a row:
 
-| timestamp | url | platform | downloaded |
-|-----------|-----|----------|------------|
-| 2026-08-19T04:17:00+00:00 | https://instagram.com/p/ABC123 | instagram | FALSE |
+| timestamp | url | platform | status | comments |
+|-----------|-----|----------|--------|----------|
+| 2026-08-19T04:17:00+00:00 | https://instagram.com/p/ABC123 | instagram | PENDING | |
 
 ## Quick Start
 

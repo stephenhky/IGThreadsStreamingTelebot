@@ -68,3 +68,22 @@ class TestParseLinks:
     def test_non_ig_threads_links_ignored(self):
         update = {"message": {"text": "https://twitter.com/user/status/123 https://example.com"}}
         assert parse_links(update) == []
+
+    def test_threads_share_link(self):
+        update = {"message": {"text": "https://www.threads.com/share/BAD707IrTq/"}}
+        assert parse_links(update) == ["https://www.threads.com/share/BAD707IrTq"]
+
+    def test_threads_share_link_no_www(self):
+        update = {"message": {"text": "https://threads.com/share/XYZ123"}}
+        assert parse_links(update) == ["https://threads.com/share/XYZ123"]
+
+    def test_threads_post_and_share_mixed(self):
+        text = (
+            "https://threads.net/@user/post/AAA\n"
+            "https://www.threads.com/share/BBB"
+        )
+        update = {"message": {"text": text}}
+        result = parse_links(update)
+        assert len(result) == 2
+        assert "https://threads.net/@user/post/AAA" in result
+        assert "https://www.threads.com/share/BBB" in result

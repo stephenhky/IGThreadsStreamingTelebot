@@ -10,8 +10,12 @@ _IG_PATTERN = re.compile(
     r"https?://(?:www\.)?instagram\.com/(?:p|reel|tv)/[\w-]+/?",
     re.IGNORECASE,
 )
-_THREADS_PATTERN = re.compile(
+_THREADS_POST_PATTERN = re.compile(
     r"https?://(?:www\.)?threads\.net/@[\w.]+/post/[\w-]+/?",
+    re.IGNORECASE,
+)
+_THREADS_SHARE_PATTERN = re.compile(
+    r"https?://(?:www\.)?threads\.com/share/[\w-]+/?",
     re.IGNORECASE,
 )
 
@@ -47,10 +51,11 @@ def parse_links(update: dict[str, Any]) -> list[str]:
             seen.add(url)
             links.append(url)
 
-    for match in _THREADS_PATTERN.finditer(text):
-        url = match.group().rstrip("/")
-        if url not in seen:
-            seen.add(url)
-            links.append(url)
+    for pattern in (_THREADS_POST_PATTERN, _THREADS_SHARE_PATTERN):
+        for match in pattern.finditer(text):
+            url = match.group().rstrip("/")
+            if url not in seen:
+                seen.add(url)
+                links.append(url)
 
     return links

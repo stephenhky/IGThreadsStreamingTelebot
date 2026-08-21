@@ -68,6 +68,6 @@ def append_links(links: list[str]) -> None:
 
 def _detect_platform(url: str) -> str:
     """Return ``'instagram'`` or ``'threads'`` based on the URL domain."""
-    if "threads.net" in url:
+    if "threads.net" in url or "threads.com" in url:
         return "threads"
     return "instagram"

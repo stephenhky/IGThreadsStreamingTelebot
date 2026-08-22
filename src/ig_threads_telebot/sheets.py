@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from datetime import datetime, timezone
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import gspread
 from google.oauth2.service_account import Credentials
@@ -42,8 +44,12 @@ def append_links(links: list[str]) -> None:
     """Append one row per link to the configured Google Sheet.
 
     Each row contains:
-        | timestamp (UTC ISO-8601) | url | platform | status | comments |
+        | timestamp (UTC ISO-8601) | url | rectified url | username |
+        | platform | status | comments |
 
+    ``rectified url`` strips Meta tracing params (``?xmt=...`` and, for
+    Instagram, ``?img_index=<int>``). ``username`` is the post author's
+    handle where it can be derived from the URL.
     Status is set to ``PENDING`` for newly added links.
 
     Parameters
@@ -63,7 +69,9 @@ def append_links(links: list[str]) -> None:
     rows = []
     for url in links:
         platform = _detect_platform(url)
-        rows.append([now, url, platform, "PENDING", ""])
+        rows.append(
+            [now, url, _rectify_link(url, platform), _extract_username(url), platform, "PENDING", ""]
+        )
 
     worksheet.append_rows(rows, value_input_option="USER_ENTERED")
 
@@ -73,3 +81,35 @@ def _detect_platform(url: str) -> str:
     if "threads.net" in url or "threads.com" in url:
         return "threads"
     return "instagram"
+
+
+def _rectify_link(url: str, platform: str) -> str:
+    """Strip Meta tracing query params from a URL.
+
+    Always removes ``xmt``. For Instagram links, also removes ``img_index``.
+    """
+    parts = urlparse(url)
+    if not parts.query:
+        return url
+
+    drop = {"xmt"}
+    if platform == "instagram":
+        drop.add("img_index")
+
+    kept = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k not in drop]
+    query = urlencode(kept)
+    return urlunparse(parts._replace(query=query))
+
+
+def _extract_username(url: str) -> str:
+    """Return the post author's username from a URL, or ``''`` if not present.
+
+    Threads URLs embed ``@username``; Instagram post URLs only contain a
+    username when the shortcode is preceded by the author segment.
+    """
+    if "threads.net" in url or "threads.com" in url:
+        match = re.search(r"threads\.(?:net|com)/@([\w.]+)", url, re.IGNORECASE)
+        return match.group(1) if match else ""
+
+    match = re.search(r"instagram\.com/([\w.]+)/(?:p|reel|tv)/", url, re.IGNORECASE)
+    return match.group(1) if match else ""

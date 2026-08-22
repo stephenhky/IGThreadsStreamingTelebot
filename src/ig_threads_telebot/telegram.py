@@ -5,17 +5,19 @@ from __future__ import annotations
 import re
 from typing import Any
 
-# Patterns for Instagram and Threads URLs
+# Patterns for Instagram and Threads URLs.
+# An optional query string is captured so tracing params (?xmt=..., ?img_index=...)
+# are preserved for later rectification.
 _IG_PATTERN = re.compile(
-    r"https?://(?:www\.)?instagram\.com/(?:p|reel|tv)/[\w-]+/?",
+    r"https?://(?:www\.)?instagram\.com/(?:p|reel|tv)/[\w-]+(?:\?[^?\s]*)?",
     re.IGNORECASE,
 )
 _THREADS_POST_PATTERN = re.compile(
-    r"https?://(?:www\.)?threads\.net/@[\w.]+/post/[\w-]+/?",
+    r"https?://(?:www\.)?threads\.net/@[\w.]+/post/[\w-]+(?:\?[^?\s]*)?",
     re.IGNORECASE,
 )
 _THREADS_SHARE_PATTERN = re.compile(
-    r"https?://(?:www\.)?threads\.com/share/[\w-]+/?",
+    r"https?://(?:www\.)?threads\.com/share/[\w-]+(?:\?[^?\s]*)?",
     re.IGNORECASE,
 )
 

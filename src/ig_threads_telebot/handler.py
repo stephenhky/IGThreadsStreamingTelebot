@@ -7,8 +7,9 @@ import logging
 import os
 from typing import Any
 
-from ig_threads_telebot.telegram import parse_links, validate_update
+from ig_threads_telebot.s3 import archive_spreadsheet_folders
 from ig_threads_telebot.sheets import append_links
+from ig_threads_telebot.telegram import parse_links, validate_update
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
@@ -40,6 +41,10 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
             logger.warning("Invalid or irrelevant update – skipping.")
             return _response(200, {"ok": True, "skipped": True})
 
+        command = _extract_command(body)
+        if command == "archive":
+            return _handle_archive()
+
         links = parse_links(body)
         if not links:
             logger.info("No IG/Threads links found in message.")
@@ -53,6 +58,29 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         logger.exception("Unhandled error processing webhook.")
         # Return 200 so Telegram doesn't retry endlessly
         return _response(200, {"ok": False, "error": "internal"})
+
+
+def _handle_archive() -> dict[str, Any]:
+    try:
+        moved = archive_spreadsheet_folders()
+        total = len(moved["instagram"]) + len(moved["threads"])
+        logger.info("Archive complete: %d folder(s) moved.", total)
+        return _response(200, {"ok": True, "archived": moved})
+    except RuntimeError as exc:
+        logger.error("Archive failed: %s", exc)
+        return _response(200, {"ok": False, "error": str(exc)})
+    except Exception:
+        logger.exception("Archive failed due to unexpected error.")
+        return _response(200, {"ok": False, "error": "archive_failed"})
+
+
+def _extract_command(update: dict[str, Any]) -> str | None:
+    """Return a leading ``/command`` string from the update, or ``None``."""
+    message = update.get("message") or update.get("channel_post") or {}
+    text = message.get("text", "")
+    if not text or not text.startswith("/"):
+        return None
+    return text.split()[0][1:].split("@")[0].lower()
 
 
 def _response(status_code: int, body: dict[str, Any]) -> dict[str, Any]:

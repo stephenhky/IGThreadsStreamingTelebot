@@ -45,7 +45,7 @@ def append_links(links: list[str]) -> None:
 
     Each row contains:
         | timestamp (UTC ISO-8601) | url | rectified url | username |
-        | platform | status | comments |
+        | platform | status | suffix | comments |
 
     ``rectified url`` strips Meta tracing params (``?xmt=...`` and, for
     Instagram, ``?img_index=<int>``). ``username`` is the post author's
@@ -70,7 +70,7 @@ def append_links(links: list[str]) -> None:
     for url in links:
         platform = _detect_platform(url)
         rows.append(
-            [now, url, _rectify_link(url, platform), _extract_username(url), platform, "PENDING", ""]
+            [now, url, _rectify_link(url, platform), _extract_username(url), platform, "PENDING", "", ""]
         )
 
     worksheet.append_rows(rows, value_input_option="USER_ENTERED")

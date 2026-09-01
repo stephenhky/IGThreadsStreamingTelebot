@@ -61,6 +61,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
 
 
 def _handle_archive() -> dict[str, Any]:
+    logger.info("Handling /archive command")
     try:
         moved = archive_spreadsheet_folders()
         total = len(moved["instagram"]) + len(moved["threads"])

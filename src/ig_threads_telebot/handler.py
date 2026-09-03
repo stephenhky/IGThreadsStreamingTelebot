@@ -8,7 +8,7 @@ import os
 from typing import Any
 
 from ig_threads_telebot.s3 import archive_spreadsheet_folders
-from ig_threads_telebot.sheets import append_links
+from ig_threads_telebot.sheets import append_links, move_downloaded_to_archive
 from ig_threads_telebot.telegram import parse_links, validate_update
 
 logger = logging.getLogger(__name__)
@@ -44,6 +44,8 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         command = _extract_command(body)
         if command == "archive":
             return _handle_archive()
+        if command == "garchive":
+            return _handle_garchive()
 
         links = parse_links(body)
         if not links:
@@ -73,6 +75,20 @@ def _handle_archive() -> dict[str, Any]:
     except Exception:
         logger.exception("Archive failed due to unexpected error.")
         return _response(200, {"ok": False, "error": "archive_failed"})
+
+
+def _handle_garchive() -> dict[str, Any]:
+    logger.info("Handling /garchive command")
+    try:
+        result = move_downloaded_to_archive()
+        logger.info("Google archive complete: %d row(s) moved.", result["moved"])
+        return _response(200, {"ok": True, "garchived": result})
+    except RuntimeError as exc:
+        logger.error("GArchive failed: %s", exc)
+        return _response(200, {"ok": False, "error": str(exc)})
+    except Exception:
+        logger.exception("GArchive failed due to unexpected error.")
+        return _response(200, {"ok": False, "error": "garchive_failed"})
 
 
 def _extract_command(update: dict[str, Any]) -> str | None:

@@ -87,3 +87,15 @@ class TestParseLinks:
         assert len(result) == 2
         assert "https://threads.net/@user/post/AAA" in result
         assert "https://www.threads.com/share/BBB" in result
+
+    def test_threads_permalink(self):
+        update = {
+            "message": {
+                "text": "https://www.threads.com/@xiaowu.369/post/Dc0AuQwk4yn"
+            }
+        }
+        assert parse_links(update) == ["https://www.threads.com/@xiaowu.369/post/Dc0AuQwk4yn"]
+
+    def test_threads_permalink_no_www(self):
+        update = {"message": {"text": "https://threads.com/@user/post/AbC123"}}
+        assert parse_links(update) == ["https://threads.com/@user/post/AbC123"]

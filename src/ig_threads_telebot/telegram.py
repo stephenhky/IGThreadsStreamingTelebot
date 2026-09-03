@@ -13,7 +13,7 @@ _IG_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _THREADS_POST_PATTERN = re.compile(
-    r"https?://(?:www\.)?threads\.net/@[\w.]+/post/[\w-]+(?:\?[^?\s]*)?",
+    r"https?://(?:www\.)?threads\.(?:net|com)/@[\w.]+/post/[\w-]+(?:\?[^?\s]*)?",
     re.IGNORECASE,
 )
 _THREADS_SHARE_PATTERN = re.compile(
